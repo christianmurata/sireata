@@ -2,8 +2,12 @@ package br.edu.utfpr.dv.sireata.dao;
 
 import java.io.FileInputStream;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Properties;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
@@ -15,25 +19,15 @@ public class ConnectionDAO {
 	private String DATABASE = "diget";
 	private String USER = "mysql";
 	private String PASSWORD = "mysql";
+
+	private Connection conn = null;
+	private Statement stmt = null;
+	private PreparedStatement pstmt = null;
+	private ResultSet rs = null;
 	
 	private DataSource datasource = null;
 	private static ConnectionDAO instance = null;
-	
-	private ConnectionDAO(){}
-	
-	public static synchronized ConnectionDAO getInstance() throws SQLException{
-		if((ConnectionDAO.instance == null) || (ConnectionDAO.instance.datasource == null)){
-			ConnectionDAO.instance = new ConnectionDAO();
-			ConnectionDAO.instance.createDataSource();
-		}
-		
-		return ConnectionDAO.instance;
-	}
-	
-	public Connection getConnection() throws SQLException{
-		return this.datasource.getConnection();
-	}
-	
+
 	private void createDataSource() throws SQLException{
 		String user, password, server, database, driver, type; 
 		
@@ -49,7 +43,7 @@ public class ConnectionDAO {
 	        password = props.getProperty("DB_PASSWORD");
 	        driver = props.getProperty("DB_DRIVER_CLASS");
 	        type = props.getProperty("DB_TYPE");
-	     }catch(Exception e){
+		} catch(Exception e){
 	    	server = SERVER;
 	    	database = DATABASE;
 	    	user = USER;
@@ -89,4 +83,96 @@ public class ConnectionDAO {
 		}
 	}
 
+	private Connection openConnection() throws SQLException {
+		return ConnectionDAO.getInstance().getConnection();
+	}
+
+	private void closeConnection() throws SQLException {
+		if((rs != null) && !rs.isClosed())
+			rs.close();
+		if((stmt != null) && !stmt.isClosed())
+			stmt.close();
+		if((conn != null) && !conn.isClosed())
+			conn.close();
+
+		// clear variables
+		conn = null;
+		stmt = null;
+		pstmt = null;
+		rs = null;
+	}
+
+	private ConnectionDAO(){}
+	
+	public static synchronized ConnectionDAO getInstance() throws SQLException{
+		if((ConnectionDAO.instance == null) || (ConnectionDAO.instance.datasource == null)){
+			ConnectionDAO.instance = new ConnectionDAO();
+			ConnectionDAO.instance.createDataSource();
+		}
+		
+		return ConnectionDAO.instance;
+	}
+
+	public Connection getConnection() throws SQLException{
+		return this.datasource.getConnection();
+	}
+
+	public Statement getStatement() {
+		return stmt;
+	}
+
+	public PreparedStatement getPreparedStatement() {
+		return pstmt;
+	}
+
+	public ConnectionDAO query() throws SQLException{
+		conn = openConnection();
+		stmt = conn.createStatement();
+
+		return this;
+	}
+
+	public void queryParam(String query) throws SQLException{
+		conn = openConnection();
+		pstmt = conn.prepareStatement(query);
+	}
+
+	public void queryParam(String query, int RETURN_GENERATED_KEYS) throws SQLException{
+		conn = openConnection();
+		pstmt = conn.prepareStatement(query, RETURN_GENERATED_KEYS);
+	}
+
+	public void setInt(int position, int value) throws SQLException{
+		pstmt.setInt(position, value);
+	}
+
+	public void setString(int position, String value) throws SQLException{
+		pstmt.setString(position, value);
+	}
+
+	public void setTimestamp(int position, Timestamp timestamp) throws SQLException{
+		pstmt.setTimestamp(position, timestamp);
+	}
+
+	public void setDate(int position, Date date) throws SQLException{
+		pstmt.setDate(position, date);
+	}
+
+	public void setBytes(int position, byte[] bytes) throws SQLException{
+		pstmt.setBytes(position, bytes);
+	}
+	
+	public ResultSet execute() throws SQLException{
+		rs = pstmt.executeQuery();
+		closeConnection();
+
+		return rs;
+	}
+
+	public ResultSet executeQuery(String query) throws SQLException{
+		rs = stmt.executeQuery(query);	
+		closeConnection();
+
+		return rs;
+	}
 }

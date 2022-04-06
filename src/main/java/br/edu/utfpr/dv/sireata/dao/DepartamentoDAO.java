@@ -1,7 +1,5 @@
 package br.edu.utfpr.dv.sireata.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -14,78 +12,57 @@ import br.edu.utfpr.dv.sireata.model.Departamento;
 public class DepartamentoDAO {
 
 	public Departamento buscarPorId(int id) throws SQLException{
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
 		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.prepareStatement(
+			connectionDao.queryParam(
 				"SELECT departamentos.*, campus.nome AS nomeCampus " +
 				"FROM departamentos INNER JOIN campus ON campus.idCampus=departamentos.idCampus " +
 				"WHERE idDepartamento = ?");
 		
-			stmt.setInt(1, id);
+			connectionDao.setInt(1, id);
 			
-			rs = stmt.executeQuery();
+			ResultSet rs = connectionDao.execute();
 			
 			if(rs.next()){
 				return this.carregarObjeto(rs);
 			}else{
 				return null;
 			}
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public Departamento buscarPorOrgao(int idOrgao) throws SQLException{
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
 		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.prepareStatement(
+			connectionDao.queryParam(
 				"SELECT departamentos.*, campus.nome AS nomeCampus " +
 				"FROM departamentos INNER JOIN campus ON campus.idCampus=departamentos.idCampus " +
 				"INNER JOIN orgaos ON orgaos.idDepartamento=departamentos.idDepartamento " +
 				"WHERE orgaos.idOrgao = ?");
 		
-			stmt.setInt(1, idOrgao);
+			connectionDao.setInt(1, idOrgao);
 			
-			rs = stmt.executeQuery();
+			ResultSet rs = connectionDao.execute();
 			
 			if(rs.next()){
 				return this.carregarObjeto(rs);
 			}else{
 				return null;
 			}
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Departamento> listarTodos(boolean apenasAtivos) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT DISTINCT departamentos.*, campus.nome AS nomeCampus " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT DISTINCT departamentos.*, campus.nome AS nomeCampus " +
 				"FROM departamentos INNER JOIN campus ON campus.idCampus=departamentos.idCampus " + 
 				(apenasAtivos ? " WHERE departamentos.ativo=1" : "") + " ORDER BY departamentos.nome");
 		
@@ -96,26 +73,16 @@ public class DepartamentoDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Departamento> listarPorCampus(int idCampus, boolean apenasAtivos) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT DISTINCT departamentos.*, campus.nome AS nomeCampus " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT DISTINCT departamentos.*, campus.nome AS nomeCampus " +
 				"FROM departamentos INNER JOIN campus ON campus.idCampus=departamentos.idCampus " +
 				"WHERE departamentos.idCampus=" + String.valueOf(idCampus) + (apenasAtivos ? " AND departamentos.ativo=1" : "") + " ORDER BY departamentos.nome");
 		
@@ -126,26 +93,16 @@ public class DepartamentoDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Departamento> listarParaCriacaoAta(int idCampus, int idUsuario) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT DISTINCT departamentos.*, campus.nome AS nomeCampus FROM departamentos " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT DISTINCT departamentos.*, campus.nome AS nomeCampus FROM departamentos " +
 				"INNER JOIN campus ON campus.idCampus=departamentos.idCampus " +
 				"INNER JOIN orgaos ON orgaos.idDepartamento=departamentos.idDepartamento " +
 				"WHERE departamentos.ativo=1 AND departamentos.idCampus=" + String.valueOf(idCampus) + " AND (orgaos.idPresidente=" + String.valueOf(idUsuario) + " OR orgaos.idSecretario=" + String.valueOf(idUsuario) + 
@@ -158,26 +115,16 @@ public class DepartamentoDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Departamento> listarParaConsultaAtas(int idCampus, int idUsuario) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT DISTINCT departamentos.*, campus.nome AS nomeCampus FROM departamentos " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT DISTINCT departamentos.*, campus.nome AS nomeCampus FROM departamentos " +
 				"INNER JOIN campus ON campus.idCampus=departamentos.idCampus " +
 				"INNER JOIN orgaos ON orgaos.idDepartamento=departamentos.idDepartamento " +
 				"INNER JOIN atas ON atas.idOrgao=orgaos.idOrgao " +
@@ -192,50 +139,42 @@ public class DepartamentoDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public int salvar(Departamento departamento) throws SQLException{
 		boolean insert = (departamento.getIdDepartamento() == 0);
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-		
+		try{		
 			if(insert){
-				stmt = conn.prepareStatement("INSERT INTO departamentos(idCampus, nome, logo, ativo, site, nomeCompleto) VALUES(?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+				connectionDao.queryParam("INSERT INTO departamentos(idCampus, nome, logo, ativo, site, nomeCompleto) VALUES(?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 			}else{
-				stmt = conn.prepareStatement("UPDATE departamentos SET idCampus=?, nome=?, logo=?, ativo=?, site=?, nomeCompleto=? WHERE idDepartamento=?");
+				connectionDao.queryParam("UPDATE departamentos SET idCampus=?, nome=?, logo=?, ativo=?, site=?, nomeCompleto=? WHERE idDepartamento=?");
 			}
 			
-			stmt.setInt(1, departamento.getCampus().getIdCampus());
-			stmt.setString(2, departamento.getNome());
+			connectionDao.setInt(1, departamento.getCampus().getIdCampus());
+			connectionDao.setString(2, departamento.getNome());
 			if(departamento.getLogo() == null){
-				stmt.setNull(3, Types.BINARY);
+				connectionDao.setInt(3, Types.BINARY);
 			}else{
-				stmt.setBytes(3, departamento.getLogo());	
+				connectionDao.setBytes(3, departamento.getLogo());	
 			}
-			stmt.setInt(4, departamento.isAtivo() ? 1 : 0);
-			stmt.setString(5, departamento.getSite());
-			stmt.setString(6, departamento.getNomeCompleto());
+			connectionDao.setInt(4, departamento.isAtivo() ? 1 : 0);
+			connectionDao.setString(5, departamento.getSite());
+			connectionDao.setString(6, departamento.getNomeCompleto());
 			
 			if(!insert){
-				stmt.setInt(7, departamento.getIdDepartamento());
+				connectionDao.setInt(7, departamento.getIdDepartamento());
 			}
 			
-			stmt.execute();
+			connectionDao.getPreparedStatement().execute();
 			
 			if(insert){
-				rs = stmt.getGeneratedKeys();
+				ResultSet rs = connectionDao.getPreparedStatement().getGeneratedKeys();
 				
 				if(rs.next()){
 					departamento.setIdDepartamento(rs.getInt(1));
@@ -243,13 +182,8 @@ public class DepartamentoDAO {
 			}
 			
 			return departamento.getIdDepartamento();
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	

@@ -1,7 +1,5 @@
 package br.edu.utfpr.dv.sireata.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -13,45 +11,32 @@ import br.edu.utfpr.dv.sireata.model.AtaParticipante;
 public class AtaParticipanteDAO {
 	
 	public AtaParticipante buscarPorId(int id) throws SQLException{
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
 		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.prepareStatement("SELECT ataparticipantes.*, usuarios.nome AS nomeParticipante FROM ataparticipantes " +
+			connectionDao.queryParam("SELECT ataparticipantes.*, usuarios.nome AS nomeParticipante FROM ataparticipantes " +
 				"INNER JOIN usuarios ON usuarios.idUsuario=ataparticipantes.idUsuario " +
 				"WHERE idAtaParticipante = ?");
 		
-			stmt.setInt(1, id);
+			connectionDao.setInt(1, id);
 			
-			rs = stmt.executeQuery();
+			ResultSet rs = connectionDao.execute();
 			
 			if(rs.next()){
 				return this.carregarObjeto(rs);
 			}else{
 				return null;
 			}
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<AtaParticipante> listarPorAta(int idAta) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT ataparticipantes.*, usuarios.nome AS nomeParticipante FROM ataparticipantes " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT ataparticipantes.*, usuarios.nome AS nomeParticipante FROM ataparticipantes " +
 				"INNER JOIN usuarios ON usuarios.idUsuario=ataparticipantes.idUsuario " + 
 				"WHERE idAta=" + String.valueOf(idAta) + " ORDER BY usuarios.nome");
 		
@@ -62,46 +47,38 @@ public class AtaParticipanteDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public int salvar(AtaParticipante participante) throws SQLException{
 		boolean insert = (participante.getIdAtaParticipante() == 0);
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-		
+		try{		
 			if(insert){
-				stmt = conn.prepareStatement("INSERT INTO ataparticipantes(idAta, idUsuario, presente, motivo, designacao, membro) VALUES(?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+				connectionDao.queryParam("INSERT INTO ataparticipantes(idAta, idUsuario, presente, motivo, designacao, membro) VALUES(?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 			}else{
-				stmt = conn.prepareStatement("UPDATE ataparticipantes SET idAta=?, idUsuario=?, presente=?, motivo=?, designacao=?, membro=? WHERE idAtaParticipante=?");
+				connectionDao.queryParam("UPDATE ataparticipantes SET idAta=?, idUsuario=?, presente=?, motivo=?, designacao=?, membro=? WHERE idAtaParticipante=?");
 			}
 			
-			stmt.setInt(1, participante.getAta().getIdAta());
-			stmt.setInt(2, participante.getParticipante().getIdUsuario());
-			stmt.setInt(3, (participante.isPresente() ? 1 : 0));
-			stmt.setString(4, participante.getMotivo());
-			stmt.setString(5, participante.getDesignacao());
-			stmt.setInt(6, (participante.isMembro() ? 1 : 0));
+			connectionDao.setInt(1, participante.getAta().getIdAta());
+			connectionDao.setInt(2, participante.getParticipante().getIdUsuario());
+			connectionDao.setInt(3, (participante.isPresente() ? 1 : 0));
+			connectionDao.setString(4, participante.getMotivo());
+			connectionDao.setString(5, participante.getDesignacao());
+			connectionDao.setInt(6, (participante.isMembro() ? 1 : 0));
 			
 			if(!insert){
-				stmt.setInt(7, participante.getIdAtaParticipante());
+				connectionDao.setInt(7, participante.getIdAtaParticipante());
 			}
 			
-			stmt.execute();
+			connectionDao.getPreparedStatement().execute();
 			
 			if(insert){
-				rs = stmt.getGeneratedKeys();
+				ResultSet rs = connectionDao.getPreparedStatement().getGeneratedKeys();
 				
 				if(rs.next()){
 					participante.setIdAtaParticipante(rs.getInt(1));
@@ -109,30 +86,18 @@ public class AtaParticipanteDAO {
 			}
 			
 			return participante.getIdAtaParticipante();
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public void excluir(int id) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			stmt.execute("DELETE FROM ataparticipantes WHERE idAtaParticipante=" + String.valueOf(id));
-		}finally{
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		try{		
+			connectionDao.query().executeQuery("DELETE FROM ataparticipantes WHERE idAtaParticipante=" + String.valueOf(id));
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	

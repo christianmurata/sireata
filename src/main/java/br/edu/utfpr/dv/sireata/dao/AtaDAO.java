@@ -1,7 +1,5 @@
 package br.edu.utfpr.dv.sireata.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -16,13 +14,10 @@ import br.edu.utfpr.dv.sireata.util.DateUtils;
 public class AtaDAO {
 	
 	public Ata buscarPorId(int id) throws SQLException{
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
+
 		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.prepareStatement(
+			connectionDao.queryParam(
 						"SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 						"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 						"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
@@ -30,33 +25,25 @@ public class AtaDAO {
 						"INNER JOIN usuarios s ON s.idUsuario=atas.idSecretario " +
 						"WHERE idAta = ?");
 			
-			stmt.setInt(1, id);
+			connectionDao.setInt(1, id);
 			
-			rs = stmt.executeQuery();
+			ResultSet rs =  connectionDao.execute();
 			
 			if(rs.next()){
 				return this.carregarObjeto(rs);
 			}else{
 				return null;
 			}
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public Ata buscarPorNumero(int idOrgao, TipoAta tipo, int numero, int ano) throws SQLException{
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
 		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.prepareStatement(
+			connectionDao.queryParam(
 						"SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 						"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 						"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
@@ -64,36 +51,28 @@ public class AtaDAO {
 						"INNER JOIN usuarios s ON s.idUsuario=atas.idSecretario " +
 						"WHERE atas.publicada = 1 AND atas.idOrgao = ? AND atas.tipo = ? AND atas.numero = ? AND YEAR(atas.data) = ?");
 			
-			stmt.setInt(1, idOrgao);
-			stmt.setInt(2, tipo.getValue());
-			stmt.setInt(3, numero);
-			stmt.setInt(4, ano);
+			connectionDao.setInt(1, idOrgao);
+			connectionDao.setInt(2, tipo.getValue());
+			connectionDao.setInt(3, numero);
+			connectionDao.setInt(4, ano);
 			
-			rs = stmt.executeQuery();
+			ResultSet rs = connectionDao.execute();
 			
 			if(rs.next()){
 				return this.carregarObjeto(rs);
 			}else{
 				return null;
 			}
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public Ata buscarPorPauta(int idPauta) throws SQLException{
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
+
 		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.prepareStatement(
+			connectionDao.queryParam(
 				"SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 				"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 				"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
@@ -102,66 +81,48 @@ public class AtaDAO {
 				"INNER JOIN pautas ON pautas.idAta=atas.idAta " +
 				"WHERE pautas.idPauta = ?");
 	
-			stmt.setInt(1, idPauta);
+			connectionDao.setInt(1, idPauta);
 			
-			rs = stmt.executeQuery();
+			ResultSet rs = connectionDao.execute();
 			
 			if(rs.next()){
 				return this.carregarObjeto(rs);
 			}else{
 				return null;
 			}
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public int buscarProximoNumeroAta(int idOrgao, int ano, TipoAta tipo) throws SQLException{
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
 		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.prepareStatement(
+			connectionDao.queryParam(
 				"SELECT MAX(numero) AS numero FROM atas WHERE idOrgao = ? AND YEAR(data) = ? AND tipo = ?");
 		
-			stmt.setInt(1, idOrgao);
-			stmt.setInt(2, ano);
-			stmt.setInt(3, tipo.getValue());
+			connectionDao.setInt(1, idOrgao);
+			connectionDao.setInt(2, ano);
+			connectionDao.setInt(3, tipo.getValue());
 			
-			rs = stmt.executeQuery();
+			ResultSet rs = connectionDao.execute();
 			
 			if(rs.next()){
 				return rs.getInt("numero") + 1;
 			}else{
 				return 1;
 			}
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Ata> listar(int idUsuario, int idCampus, int idDepartamento, int idOrgao, boolean publicadas) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 					"FROM atas INNER JOIN ataparticipantes ON ataparticipantes.idAta=atas.idAta " +
 					"INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 					"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
@@ -181,26 +142,16 @@ public class AtaDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Ata> listarPublicadas() throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
+		try{		
+			ResultSet rs =  connectionDao.query().executeQuery("SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 				"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 				"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
 				"INNER JOIN usuarios p ON p.idUsuario=atas.idPresidente " +
@@ -214,26 +165,16 @@ public class AtaDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Ata> listarPorOrgao(int idOrgao) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
+		try{		
+			ResultSet rs =  connectionDao.query().executeQuery("SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 				"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 				"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
 				"INNER JOIN usuarios p ON p.idUsuario=atas.idPresidente " +
@@ -247,26 +188,16 @@ public class AtaDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Ata> listarPorDepartamento(int idDepartamento) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 				"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 				"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
 				"INNER JOIN usuarios p ON p.idUsuario=atas.idPresidente " +
@@ -280,26 +211,16 @@ public class AtaDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Ata> listarPorCampus(int idCampus) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 				"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 				"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
 				"INNER JOIN usuarios p ON p.idUsuario=atas.idPresidente " +
@@ -313,26 +234,16 @@ public class AtaDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Ata> listarNaoPublicadas(int idUsuario) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 				"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 				"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
 				"INNER JOIN usuarios p ON p.idUsuario=atas.idPresidente " +
@@ -347,26 +258,16 @@ public class AtaDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Ata> listarPorOrgao(int idOrgao, int idUsuario) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
+		try{		
+			ResultSet rs =  connectionDao.query().executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 				"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 				"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
 				"INNER JOIN usuarios p ON p.idUsuario=atas.idPresidente " +
@@ -381,26 +282,16 @@ public class AtaDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Ata> listarPorDepartamento(int idDepartamento, int idUsuario) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 				"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 				"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
 				"INNER JOIN usuarios p ON p.idUsuario=atas.idPresidente " +
@@ -415,26 +306,16 @@ public class AtaDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public List<Ata> listarPorCampus(int idCampus, int idUsuario) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT DISTINCT atas.*, orgaos.nome AS orgao, p.nome AS presidente, s.nome AS secretario " +
 				"FROM atas INNER JOIN orgaos ON orgaos.idOrgao=atas.idOrgao " +
 				"INNER JOIN departamentos ON departamentos.idDepartamento=orgaos.idDepartamento " +
 				"INNER JOIN usuarios p ON p.idUsuario=atas.idPresidente " +
@@ -449,55 +330,48 @@ public class AtaDAO {
 			}
 			
 			return list;
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public int salvar(Ata ata) throws SQLException{
 		boolean insert = (ata.getIdAta() == 0);
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
+		
+		try{			
 			if(insert){
-				stmt = conn.prepareStatement("INSERT INTO atas(idOrgao, idPresidente, idSecretario, tipo, numero, data, local, localCompleto, dataLimiteComentarios, consideracoesIniciais, audio, documento, publicada, dataPublicacao, aceitarComentarios) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 0, NULL, 0)", Statement.RETURN_GENERATED_KEYS);
+				connectionDao.queryParam("INSERT INTO atas(idOrgao, idPresidente, idSecretario, tipo, numero, data, local, localCompleto, dataLimiteComentarios, consideracoesIniciais, audio, documento, publicada, dataPublicacao, aceitarComentarios) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 0, NULL, 0)", Statement.RETURN_GENERATED_KEYS);
 			}else{
-				stmt = conn.prepareStatement("UPDATE atas SET idOrgao=?, idPresidente=?, idSecretario=?, tipo=?, numero=?, data=?, local=?, localCompleto=?, dataLimiteComentarios=?, consideracoesIniciais=?, audio=? WHERE idAta=?");
+				connectionDao.queryParam("UPDATE atas SET idOrgao=?, idPresidente=?, idSecretario=?, tipo=?, numero=?, data=?, local=?, localCompleto=?, dataLimiteComentarios=?, consideracoesIniciais=?, audio=? WHERE idAta=?");
 			}
 			
-			stmt.setInt(1, ata.getOrgao().getIdOrgao());
-			stmt.setInt(2, ata.getPresidente().getIdUsuario());
-			stmt.setInt(3, ata.getSecretario().getIdUsuario());
-			stmt.setInt(4, ata.getTipo().getValue());
-			stmt.setInt(5, ata.getNumero());
-			stmt.setTimestamp(6, new java.sql.Timestamp(ata.getData().getTime()));
-			stmt.setString(7, ata.getLocal());
-			stmt.setString(8, ata.getLocalCompleto());
-			stmt.setDate(9, new java.sql.Date(ata.getDataLimiteComentarios().getTime()));
-			stmt.setString(10, ata.getConsideracoesIniciais());
+			connectionDao.setInt(1, ata.getOrgao().getIdOrgao());
+			connectionDao.setInt(2, ata.getPresidente().getIdUsuario());
+			connectionDao.setInt(3, ata.getSecretario().getIdUsuario());
+			connectionDao.setInt(4, ata.getTipo().getValue());
+			connectionDao.setInt(5, ata.getNumero());
+			connectionDao.setTimestamp(6, new java.sql.Timestamp(ata.getData().getTime()));
+			connectionDao.setString(7, ata.getLocal());
+			connectionDao.setString(8, ata.getLocalCompleto());
+			connectionDao.setDate(9, new java.sql.Date(ata.getDataLimiteComentarios().getTime()));
+			connectionDao.setString(10, ata.getConsideracoesIniciais());
+			
 			if(ata.getAudio() == null){
-				stmt.setNull(11, Types.BINARY);
+				connectionDao.setInt(11, Types.BINARY);
 			}else{
-				stmt.setBytes(11, ata.getAudio());	
+				connectionDao.setBytes(11, ata.getAudio());	
 			}
 			
 			if(!insert){
-				stmt.setInt(12, ata.getIdAta());
+				connectionDao.setInt(12, ata.getIdAta());
 			}
 			
-			stmt.execute();
+			connectionDao.getPreparedStatement().execute();
 			
 			if(insert){
-				rs = stmt.getGeneratedKeys();
+				ResultSet rs =  connectionDao.getPreparedStatement().getGeneratedKeys();
 				
 				if(rs.next()){
 					ata.setIdAta(rs.getInt(1));
@@ -505,68 +379,45 @@ public class AtaDAO {
 			}
 			
 			return ata.getIdAta();
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public void publicar(int idAta, byte[] documento) throws SQLException{
-		Connection conn = null;
-		PreparedStatement stmt = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
+		
 		
 		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.prepareStatement("UPDATE atas SET documento=?, dataPublicacao=?, publicada=1, aceitarComentarios=0 WHERE publicada=0 AND idAta=?");
+			connectionDao.queryParam("UPDATE atas SET documento=?, dataPublicacao=?, publicada=1, aceitarComentarios=0 WHERE publicada=0 AND idAta=?");
 		
-			stmt.setBytes(1, documento);
-			stmt.setTimestamp(2, new java.sql.Timestamp(DateUtils.getNow().getTime().getTime()));
-			stmt.setInt(3, idAta);
+			connectionDao.setBytes(1, documento);
+			connectionDao.setTimestamp(2, new java.sql.Timestamp(DateUtils.getNow().getTime().getTime()));
+			connectionDao.setInt(3, idAta);
 			
-			stmt.execute();
-		}finally{
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+			connectionDao.execute();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public void liberarComentarios(int idAta) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			stmt.execute("UPDATE atas SET aceitarComentarios=1 WHERE publicada=0 AND idAta=" + String.valueOf(idAta));
-		}finally{
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		try{		
+			connectionDao.query().executeQuery("UPDATE atas SET aceitarComentarios=1 WHERE publicada=0 AND idAta=" + String.valueOf(idAta));
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public void bloquearComentarios(int idAta) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			stmt.execute("UPDATE atas SET aceitarComentarios=0 WHERE idAta=" + String.valueOf(idAta));
-		}finally{
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		try{		
+			connectionDao.query().executeQuery("UPDATE atas SET aceitarComentarios=0 WHERE idAta=" + String.valueOf(idAta));
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
@@ -597,15 +448,10 @@ public class AtaDAO {
 	}
 	
 	public boolean temComentarios(int idAta) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT COUNT(comentarios.idComentario) AS qtde FROM comentarios " +
+		try{		
+			ResultSet rs =  connectionDao.query().executeQuery("SELECT COUNT(comentarios.idComentario) AS qtde FROM comentarios " +
 				"INNER JOIN pautas ON pautas.idPauta=comentarios.idPauta " + 
 				"WHERE pautas.idAta=" + String.valueOf(idAta));
 		
@@ -614,72 +460,42 @@ public class AtaDAO {
 			}else{
 				return false;
 			}
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public boolean isPresidenteOuSecretario(int idUsuario, int idAta) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT atas.idAta FROM atas " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT atas.idAta FROM atas " +
 				"WHERE idAta=" + String.valueOf(idAta) + " AND (idPresidente=" + String.valueOf(idUsuario) + " OR idSecretario=" + String.valueOf(idUsuario) + ")");
 		
 			return rs.next();
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public boolean isPresidente(int idUsuario, int idAta) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT atas.idAta FROM atas " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT atas.idAta FROM atas " +
 				"WHERE idAta=" + String.valueOf(idAta) + " AND idPresidente=" + String.valueOf(idUsuario));
 		
 			return rs.next();
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public boolean isPublicada(int idAta) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
-		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			stmt = conn.createStatement();
-		
-			rs = stmt.executeQuery("SELECT atas.publicada FROM atas " +
+		try{		
+			ResultSet rs = connectionDao.query().executeQuery("SELECT atas.publicada FROM atas " +
 				"WHERE idAta=" + String.valueOf(idAta));
 		
 			if(rs.next()) {
@@ -687,44 +503,29 @@ public class AtaDAO {
 			} else {
 				return false;
 			}
-		}finally{
-			if((rs != null) && !rs.isClosed())
-				rs.close();
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
+		} catch (SQLException sqlException) {
+			throw new SQLException(sqlException);
 		}
 	}
 	
 	public boolean excluir(int idAta) throws SQLException{
-		Connection conn = null;
-		Statement stmt = null;
+		ConnectionDAO connectionDao = ConnectionDAO.getInstance();
 		
 		try{
-			conn = ConnectionDAO.getInstance().getConnection();
-			conn.setAutoCommit(false);
-			stmt = conn.createStatement();
+			connectionDao.getConnection().setAutoCommit(false);
 			
-			stmt.execute("DELETE FROM comentarios WHERE idPauta IN (SELECT idPauta FROM pautas WHERE idAta=" + String.valueOf(idAta) + ")");
-			stmt.execute("DELETE FROM pautas WHERE idAta=" + String.valueOf(idAta));
-			stmt.execute("DELETE FROM ataparticipantes WHERE idAta=" + String.valueOf(idAta));
-			stmt.execute("DELETE FROM anexos WHERE idAta=" + String.valueOf(idAta));
-			boolean ret = stmt.execute("DELETE FROM atas WHERE idAta=" + String.valueOf(idAta));
+			connectionDao.query().executeQuery("DELETE FROM comentarios WHERE idPauta IN (SELECT idPauta FROM pautas WHERE idAta=" + String.valueOf(idAta) + ")");
+			connectionDao.query().executeQuery("DELETE FROM pautas WHERE idAta=" + String.valueOf(idAta));
+			connectionDao.query().executeQuery("DELETE FROM ataparticipantes WHERE idAta=" + String.valueOf(idAta));
+			connectionDao.query().executeQuery("DELETE FROM anexos WHERE idAta=" + String.valueOf(idAta));
+			boolean ret = connectionDao.getStatement().execute("DELETE FROM atas WHERE idAta=" + String.valueOf(idAta));
 			
-			conn.commit();
+			connectionDao.getConnection().commit();
 			
 			return ret;
 		}catch(SQLException ex) {
-			conn.rollback();
+			connectionDao.getConnection().rollback();
 			throw ex;
-		}finally{
-			conn.setAutoCommit(true);
-			if((stmt != null) && !stmt.isClosed())
-				stmt.close();
-			if((conn != null) && !conn.isClosed())
-				conn.close();
 		}
 	}
-
 }
