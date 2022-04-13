@@ -3,7 +3,23 @@ package br.edu.utfpr.dv.sireata.model;
 public class Comentario {
 	
 	public enum SituacaoComentario{
-		NAOANALISADO(0), ACEITO(1), RECUSADO(2);
+		NAOANALISADO(0) {
+			public String toString() {
+				return "Não Analisado";
+			}
+		}, 
+		
+		ACEITO(1) {
+			public String toString() {
+				return "Aceito";
+			}
+		}, 
+		
+		RECUSADO(2) {
+			public String toString() {
+				return "Recusado";
+			}
+		};
 		
 		private final int value; 
 		SituacaoComentario(int value){ 
@@ -22,19 +38,6 @@ public class Comentario {
 			}
 			
 			return null;
-		}
-		
-		public String toString(){
-			switch(this){
-				case NAOANALISADO:
-					return "Não Analisado";
-				case ACEITO:
-					return "Aceito";
-				case RECUSADO:
-					return "Recusado";
-				default:
-					return "";
-			}
 		}
 	}
 	
