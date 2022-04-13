@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -491,11 +492,11 @@ public class AtaBO {
 	}
 	
 	private String getDataExtenso(Date data){
-		int dia = DateUtils.getDayOfMonth(data);
-		int mes = DateUtils.getMonth(data);
-		int ano = DateUtils.getYear(data);
-		int hora = DateUtils.getHour(data);
-		int minuto = DateUtils.getMinute(data);
+		int dia = DateUtils.get(data, Calendar.DAY_OF_MONTH);
+		int mes = DateUtils.get(data, Calendar.MONTH);
+		int ano = DateUtils.get(data, Calendar.YEAR);
+		int hora = DateUtils.get(data, Calendar.HOUR);
+		int minuto = DateUtils.get(data, Calendar.MINUTE);
 		String resultado = "Ao";
 		String[] meses = {"janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"};
 		
