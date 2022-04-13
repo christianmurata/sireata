@@ -17,6 +17,33 @@ import br.edu.utfpr.dv.sireata.util.StringUtils;
 
 public class UsuarioBO {
 	
+	private void validate(Usuario usuario) throws Exception {
+		if(usuario.getLogin().isEmpty()){
+			throw new Exception("Informe o login.");
+		}
+		if(usuario.getSenha().isEmpty()){
+			throw new Exception("Informe a senha.");
+		}
+		if(usuario.getNome().isEmpty()){
+			throw new Exception("Informe o nome.");
+		}
+	}
+
+	private void validate(Usuario usuario, String senhaAtual, String novaSenha, String hashAtual) throws Exception {
+		if(usuario == null){
+			throw new Exception("Usuário não encontrado.");
+		}
+		if(!usuario.isExterno()){
+			throw new Exception("A alteração de senha é permitida apenas para usuários externos. Acadêmicos e Professores devem alterar a senha através do Sistema Acadêmico.");
+		}
+		if(!usuario.getSenha().equals(hashAtual)){
+			throw new Exception("A senha atual não confere.");
+		}
+		if(senhaAtual.equals(novaSenha)){
+			throw new Exception("A nova senha não deve ser igual à senha atual.");
+		}
+	}
+
 	public List<Usuario> listarTodos(boolean apenasAtivos) throws Exception{
 		try {
 			UsuarioDAO dao = new UsuarioDAO();
@@ -43,18 +70,9 @@ public class UsuarioBO {
 	
 	public int salvar(Usuario usuario) throws Exception{
 		try {
-			if(usuario.getLogin().isEmpty()){
-				throw new Exception("Informe o login.");
-			}
-			if(usuario.getSenha().isEmpty()){
-				throw new Exception("Informe a senha.");
-			}
-			if(usuario.getNome().isEmpty()){
-				throw new Exception("Informe o nome.");
-			}
+			validate(usuario);
 			
 			UsuarioDAO dao = new UsuarioDAO();
-			
 			return dao.salvar(usuario);
 		} catch (SQLException e) {
 			Logger.getGlobal().log(Level.SEVERE, e.getMessage(), e);
@@ -123,18 +141,7 @@ public class UsuarioBO {
 			UsuarioDAO dao = new UsuarioDAO();
 			Usuario usuario = dao.buscarPorId(idUsuario);
 			
-			if(usuario == null){
-				throw new Exception("Usuário não encontrado.");
-			}
-			if(!usuario.isExterno()){
-				throw new Exception("A alteração de senha é permitida apenas para usuários externos. Acadêmicos e Professores devem alterar a senha através do Sistema Acadêmico.");
-			}
-			if(!usuario.getSenha().equals(hashAtual)){
-				throw new Exception("A senha atual não confere.");
-			}
-			if(senhaAtual.equals(novaSenha)){
-				throw new Exception("A nova senha não deve ser igual à senha atual.");
-			}
+			validate(usuario, senhaAtual, novaSenha, hashAtual);
 			
 			usuario.setSenha(novoHash);
 			dao.salvar(usuario);
