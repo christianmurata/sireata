@@ -52,7 +52,10 @@ public class DateUtils {
 	}
 
 	public static int get(Date date, int field) {
-		return Calendar.getInstance().get(field);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+
+		return calendar.get(field);
 	}
 	
 	public static Date concat(Date date, Date time){
