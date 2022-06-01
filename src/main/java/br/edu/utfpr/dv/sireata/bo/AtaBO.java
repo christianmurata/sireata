@@ -12,11 +12,9 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 
-import br.edu.utfpr.dv.sireata.dao.AnexoDAO;
 import br.edu.utfpr.dv.sireata.dao.AtaDAO;
-import br.edu.utfpr.dv.sireata.dao.AtaParticipanteDAO;
-import br.edu.utfpr.dv.sireata.dao.OrgaoDAO;
-import br.edu.utfpr.dv.sireata.dao.PautaDAO;
+import br.edu.utfpr.dv.sireata.factory.DaoFactory;
+import br.edu.utfpr.dv.sireata.factory.DaoFactory.DaoProvider;
 import br.edu.utfpr.dv.sireata.model.Anexo;
 import br.edu.utfpr.dv.sireata.model.Ata;
 import br.edu.utfpr.dv.sireata.model.Pauta;
@@ -33,9 +31,7 @@ public class AtaBO {
 	
 	public Ata buscarPorId(int id) throws Exception{
 		try{
-			AtaDAO dao = new AtaDAO();
-			
-			return dao.buscarPorId(id);
+			return (Ata) DaoFactory.select(DaoProvider.ATA).buscarPorId(id);
 		}catch(Exception e){
 			Logger.getGlobal().log(Level.SEVERE, e.getMessage(), e);
 			
@@ -208,22 +204,18 @@ public class AtaBO {
 			if(ata.getPauta() != null){
 				int i = 1;
 				
-				for(Pauta p : ata.getPauta()){
-					PautaDAO pdao = new PautaDAO();
-					
+				for(Pauta p : ata.getPauta()){					
 					p.getAta().setIdAta(id);
 					p.setOrdem(i);
-					pdao.salvar(p);
+					DaoFactory.select(DaoProvider.PAUTA).salvar(p);
 					i++;
 				}
 			}
 			
 			if(ata.getParticipantes() != null){
 				for(AtaParticipante p : ata.getParticipantes()){
-					AtaParticipanteDAO pdao = new AtaParticipanteDAO();
-					
 					p.getAta().setIdAta(id);
-					pdao.salvar(p);
+					DaoFactory.select(DaoProvider.ATAPARTICIPANTE).salvar(p);
 				}
 			}
 			
@@ -231,11 +223,9 @@ public class AtaBO {
 				int i = 1;
 				
 				for(Anexo a : ata.getAnexos()) {
-					AnexoDAO adao = new AnexoDAO();
-					
 					a.getAta().setIdAta(id);
 					a.setOrdem(i);
-					adao.salvar(a);
+					DaoFactory.select(DaoProvider.ANEXO).salvar(a);
 					i++;
 				}
 			}
@@ -382,7 +372,6 @@ public class AtaBO {
 			ata.setParticipantes(apbo.listarPorAta(idAta));
 			
 			for(AtaParticipante participante : ata.getParticipantes()){
-				OrgaoDAO odao = new OrgaoDAO();
 				ParticipanteReport pr = new ParticipanteReport();
 				
 				pr.setNome(participante.getParticipante().getNome() + (participante.getDesignacao().isEmpty() ? "" : " (" + participante.getDesignacao() + ")"));
